@@ -23,56 +23,43 @@
         <div class="upload-grid">
           <label class="dropzone">
             <span>Original Image A</span>
-            <input type="file" name="image_a" accept=".jpg,.jpeg,.png" {% if not current_pair %}required{% endif %}>
-            {% if current_pair %}
-              <small>Active: {{ current_pair.image_a_name }}</small>
-              <img class="upload-preview" src="{{ current_pair.image_a_url }}" alt="Current Original Image A">
-            {% else %}
-              <small>Reference image: JPG, JPEG, or PNG</small>
-            {% endif %}
+            <input type="file" name="image_a" accept=".jpg,.jpeg,.png" required>
+            <small>Reference image: JPG, JPEG, or PNG</small>
           </label>
           <label class="dropzone">
             <span>Original Image B</span>
-            <input type="file" name="image_b" accept=".jpg,.jpeg,.png" {% if not current_pair %}required{% endif %}>
-            {% if current_pair %}
-              <small>Active: {{ current_pair.image_b_name }}</small>
-              <img class="upload-preview" src="{{ current_pair.image_b_url }}" alt="Current Original Image B">
-            {% else %}
-              <small>Comparison image: JPG, JPEG, or PNG</small>
-            {% endif %}
+            <input type="file" name="image_b" accept=".jpg,.jpeg,.png" required>
+            <small>Comparison image: JPG, JPEG, or PNG</small>
           </label>
         </div>
 
         <div class="settings">
           <label class="check">
-            <input type="checkbox" name="align" {% if form_values.align %}checked{% endif %}>
+            <input type="checkbox" name="align">
             <span>Auto-align slightly shifted photos</span>
           </label>
           <label>
             Threshold
             <select name="threshold_method">
-              <option value="otsu" {% if form_values.threshold_method == "otsu" %}selected{% endif %}>Automatic</option>
-              <option value="fixed" {% if form_values.threshold_method == "fixed" %}selected{% endif %}>Fixed</option>
+              <option value="otsu" selected>Automatic</option>
+              <option value="fixed">Fixed</option>
             </select>
           </label>
           <label>
             Fixed threshold
-            <input type="number" name="fixed_threshold" value="{{ form_values.fixed_threshold }}" min="1" max="255">
+            <input type="number" name="fixed_threshold" value="30" min="1" max="255">
           </label>
           <label>
             Min region area
-            <input type="number" name="min_region_area" value="{{ form_values.min_region_area }}" min="10" max="10000">
+            <input type="number" name="min_region_area" value="150" min="10" max="10000">
           </label>
           <label>
             Cleanup kernel
-            <input type="number" name="morph_kernel_size" value="{{ form_values.morph_kernel_size }}" min="3" max="31" step="2">
+            <input type="number" name="morph_kernel_size" value="5" min="3" max="31" step="2">
           </label>
         </div>
 
-        <button type="submit">{% if current_pair %}Compare Current Images{% else %}Compare Images{% endif %}</button>
-        {% if current_pair %}
-          <p class="reuse-note">Change only the parameters and click compare again. Upload new files only when you want to replace the active image pair.</p>
-        {% endif %}
+        <button type="submit">Compare Images</button>
       </form>
       {% if error %}
         <div class="alert">{{ error }}</div>

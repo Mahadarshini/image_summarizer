@@ -1,0 +1,273 @@
+{
+  "num_changed_regions": 22,
+  "percent_changed": 16.86,
+  "total_changed_area_px": 651884,
+  "total_image_area_px": 3866367,
+  "ssim_similarity_score": 0.8501,
+  "regions": [
+    {
+      "id": 1,
+      "bbox_xywh": [
+        18,
+        1244,
+        1318,
+        339
+      ],
+      "area_px": 265061,
+      "percent_of_image": 6.856,
+      "location": "center"
+    },
+    {
+      "id": 2,
+      "bbox_xywh": [
+        20,
+        794,
+        1318,
+        373
+      ],
+      "area_px": 212522,
+      "percent_of_image": 5.497,
+      "location": "center"
+    },
+    {
+      "id": 3,
+      "bbox_xywh": [
+        0,
+        1141,
+        1653,
+        584
+      ],
+      "area_px": 184231,
+      "percent_of_image": 4.765,
+      "location": "center"
+    },
+    {
+      "id": 4,
+      "bbox_xywh": [
+        1093,
+        626,
+        560,
+        515
+      ],
+      "area_px": 118096,
+      "percent_of_image": 3.054,
+      "location": "right"
+    },
+    {
+      "id": 5,
+      "bbox_xywh": [
+        157,
+        708,
+        1041,
+        138
+      ],
+      "area_px": 60167,
+      "percent_of_image": 1.556,
+      "location": "top"
+    },
+    {
+      "id": 6,
+      "bbox_xywh": [
+        31,
+        669,
+        68,
+        91
+      ],
+      "area_px": 3633,
+      "percent_of_image": 0.094,
+      "location": "top-left"
+    },
+    {
+      "id": 7,
+      "bbox_xywh": [
+        46,
+        1283,
+        96,
+        61
+      ],
+      "area_px": 2946,
+      "percent_of_image": 0.076,
+      "location": "left"
+    },
+    {
+      "id": 8,
+      "bbox_xywh": [
+        401,
+        796,
+        40,
+        56
+      ],
+      "area_px": 1708,
+      "percent_of_image": 0.044,
+      "location": "left"
+    },
+    {
+      "id": 9,
+      "bbox_xywh": [
+        902,
+        796,
+        41,
+        50
+      ],
+      "area_px": 1704,
+      "percent_of_image": 0.044,
+      "location": "center"
+    },
+    {
+      "id": 10,
+      "bbox_xywh": [
+        390,
+        634,
+        425,
+        6
+      ],
+      "area_px": 1281,
+      "percent_of_image": 0.033,
+      "location": "top"
+    },
+    {
+      "id": 11,
+      "bbox_xywh": [
+        670,
+        1629,
+        88,
+        22
+      ],
+      "area_px": 999,
+      "percent_of_image": 0.026,
+      "location": "bottom"
+    },
+    {
+      "id": 12,
+      "bbox_xywh": [
+        14,
+        634,
+        11,
+        90
+      ],
+      "area_px": 508,
+      "percent_of_image": 0.013,
+      "location": "top-left"
+    },
+    {
+      "id": 13,
+      "bbox_xywh": [
+        624,
+        1629,
+        47,
+        21
+      ],
+      "area_px": 447,
+      "percent_of_image": 0.012,
+      "location": "bottom"
+    },
+    {
+      "id": 14,
+      "bbox_xywh": [
+        828,
+        634,
+        113,
+        5
+      ],
+      "area_px": 315,
+      "percent_of_image": 0.008,
+      "location": "top"
+    },
+    {
+      "id": 15,
+      "bbox_xywh": [
+        914,
+        860,
+        26,
+        19
+      ],
+      "area_px": 259,
+      "percent_of_image": 0.007,
+      "location": "center"
+    },
+    {
+      "id": 16,
+      "bbox_xywh": [
+        412,
+        1086,
+        18,
+        20
+      ],
+      "area_px": 220,
+      "percent_of_image": 0.006,
+      "location": "left"
+    },
+    {
+      "id": 17,
+      "bbox_xywh": [
+        414,
+        861,
+        16,
+        31
+      ],
+      "area_px": 210,
+      "percent_of_image": 0.005,
+      "location": "left"
+    },
+    {
+      "id": 18,
+      "bbox_xywh": [
+        916,
+        1084,
+        15,
+        25
+      ],
+      "area_px": 203,
+      "percent_of_image": 0.005,
+      "location": "center"
+    },
+    {
+      "id": 19,
+      "bbox_xywh": [
+        603,
+        1630,
+        23,
+        19
+      ],
+      "area_px": 169,
+      "percent_of_image": 0.004,
+      "location": "bottom"
+    },
+    {
+      "id": 20,
+      "bbox_xywh": [
+        413,
+        1116,
+        15,
+        18
+      ],
+      "area_px": 165,
+      "percent_of_image": 0.004,
+      "location": "left"
+    },
+    {
+      "id": 21,
+      "bbox_xywh": [
+        583,
+        1630,
+        17,
+        20
+      ],
+      "area_px": 155,
+      "percent_of_image": 0.004,
+      "location": "bottom"
+    },
+    {
+      "id": 22,
+      "bbox_xywh": [
+        915,
+        892,
+        12,
+        22
+      ],
+      "area_px": 152,
+      "percent_of_image": 0.004,
+      "location": "center"
+    }
+  ]
+}

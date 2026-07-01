@@ -14,7 +14,7 @@ import sys
 import uuid
 from pathlib import Path
 
-from flask import Flask, abort, render_template, request, send_file, session, url_for
+from flask import Flask, abort, render_template, request, send_file, url_for
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_LEFT
 from reportlab.lib.pagesizes import A4
@@ -70,58 +70,6 @@ def _save_upload(file_storage, run_upload_dir: Path, prefix: str) -> Path:
     return saved_path
 
 
-def _has_upload(name: str) -> bool:
-    file_storage = request.files.get(name)
-    return bool(file_storage and file_storage.filename)
-
-
-def _current_pair() -> dict | None:
-    pair = session.get("current_pair")
-    if not pair:
-        return None
-
-    image_a = Path(pair["image_a_path"])
-    image_b = Path(pair["image_b_path"])
-    if not image_a.exists() or not image_b.exists():
-        session.pop("current_pair", None)
-        return None
-
-    return pair
-
-
-def _save_or_reuse_pair() -> tuple[Path, Path, dict]:
-    pair = _current_pair()
-    has_a = _has_upload("image_a")
-    has_b = _has_upload("image_b")
-
-    if not pair and (not has_a or not has_b):
-        raise ValueError("Upload both images once. After that, you can change only the parameters and compare again.")
-
-    if pair:
-        pair_id = pair["pair_id"]
-        pair_dir = UPLOAD_DIR / pair_id
-        pair_dir.mkdir(parents=True, exist_ok=True)
-    else:
-        pair_id = uuid.uuid4().hex[:12]
-        pair_dir = UPLOAD_DIR / pair_id
-        pair_dir.mkdir(parents=True, exist_ok=True)
-        pair = {"pair_id": pair_id}
-
-    if has_a:
-        image_a = _save_upload(request.files.get("image_a"), pair_dir, "image_a")
-        pair["image_a_path"] = str(image_a)
-        pair["image_a_name"] = secure_filename(request.files["image_a"].filename)
-
-    if has_b:
-        image_b = _save_upload(request.files.get("image_b"), pair_dir, "image_b")
-        pair["image_b_path"] = str(image_b)
-        pair["image_b_name"] = secure_filename(request.files["image_b"].filename)
-
-    session["current_pair"] = pair
-    session.modified = True
-    return Path(pair["image_a_path"]), Path(pair["image_b_path"]), pair
-
-
 def _coerce_int(name: str, default: int, minimum: int, maximum: int) -> int:
     try:
         value = int(request.form.get(name, default))
@@ -140,28 +88,6 @@ def _build_artifacts(run_id: str, stats: dict, summary: str) -> dict:
         "mask": "difference_mask.png",
         "panel": "summary_panel.png",
     }
-
-
-def _pair_for_template(pair: dict | None) -> dict | None:
-    if not pair:
-        return None
-    pair_id = pair["pair_id"]
-    return {
-        "image_a_name": pair.get("image_a_name", "Image A"),
-        "image_b_name": pair.get("image_b_name", "Image B"),
-        "image_a_url": url_for("uploaded_image", pair_id=pair_id, image_key="a"),
-        "image_b_url": url_for("uploaded_image", pair_id=pair_id, image_key="b"),
-    }
-
-
-def _form_values() -> dict:
-    return {
-        "align": request.form.get("align") == "on",
-        "threshold_method": request.form.get("threshold_method", "otsu"),
-        "fixed_threshold": _coerce_int("fixed_threshold", 30, 1, 255),
-        "min_region_area": _coerce_int("min_region_area", 150, 10, 10000),
-        "morph_kernel_size": _coerce_int("morph_kernel_size", 5, 3, 31) | 1,
-    }
     return {
         "run_id": run_id,
         "stats": stats,
@@ -179,17 +105,19 @@ def index():
     _ensure_dirs()
     error = None
     result = None
-    form_values = _form_values()
 
     if request.method == "POST":
         run_id = uuid.uuid4().hex[:12]
+        run_upload_dir = UPLOAD_DIR / run_id
         run_output_dir = STATIC_RUNS_DIR / run_id
+        run_upload_dir.mkdir(parents=True, exist_ok=True)
         run_output_dir.mkdir(parents=True, exist_ok=True)
 
         try:
-            image_a, image_b, _ = _save_or_reuse_pair()
+            image_a = _save_upload(request.files.get("image_a"), run_upload_dir, "image_a")
+            image_b = _save_upload(request.files.get("image_b"), run_upload_dir, "image_b")
 
-            threshold_method = form_values["threshold_method"]
+            threshold_method = request.form.get("threshold_method", "otsu")
             if threshold_method not in {"otsu", "fixed"}:
                 threshold_method = "otsu"
 
@@ -197,12 +125,12 @@ def index():
                 str(image_a),
                 str(image_b),
                 str(run_output_dir),
-                min_region_area=form_values["min_region_area"],
-                align=form_values["align"],
+                min_region_area=_coerce_int("min_region_area", 150, 10, 10000),
+                align=request.form.get("align") == "on",
                 use_llm_summary=False,
                 threshold_method=threshold_method,
-                fixed_threshold=form_values["fixed_threshold"],
-                morph_kernel_size=form_values["morph_kernel_size"],
+                fixed_threshold=_coerce_int("fixed_threshold", 30, 1, 255),
+                morph_kernel_size=_coerce_int("morph_kernel_size", 5, 3, 31) | 1,
             )
 
             _create_pdf_report(
@@ -218,14 +146,10 @@ def index():
         except Exception as exc:  # noqa: BLE001
             error = str(exc)
             shutil.rmtree(run_output_dir, ignore_errors=True)
+        finally:
+            shutil.rmtree(run_upload_dir, ignore_errors=True)
 
-    return render_template(
-        "index.html",
-        result=result,
-        error=error,
-        current_pair=_pair_for_template(_current_pair()),
-        form_values=form_values,
-    )
+    return render_template("index.html", result=result, error=error)
 
 
 @app.route("/download/<run_id>/report.pdf")
@@ -236,23 +160,6 @@ def download_report(run_id: str):
     if not report_path.exists():
         abort(404)
     return send_file(report_path, as_attachment=True, download_name="image_difference_report.pdf")
-
-
-@app.route("/uploaded/<pair_id>/<image_key>")
-def uploaded_image(pair_id: str, image_key: str):
-    if not pair_id.isalnum() or image_key not in {"a", "b"}:
-        abort(404)
-
-    pair = _current_pair()
-    if not pair or pair.get("pair_id") != pair_id:
-        abort(404)
-
-    path_key = "image_a_path" if image_key == "a" else "image_b_path"
-    image_path = Path(pair[path_key])
-    if not image_path.exists():
-        abort(404)
-
-    return send_file(image_path)
 
 
 def _create_pdf_report(outdir: Path, stats: dict, summary: str) -> Path:

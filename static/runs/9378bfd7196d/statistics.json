@@ -1,0 +1,45 @@
+{
+  "num_changed_regions": 3,
+  "percent_changed": 47.76,
+  "total_changed_area_px": 109762,
+  "total_image_area_px": 229800,
+  "ssim_similarity_score": 0.5365,
+  "regions": [
+    {
+      "id": 1,
+      "bbox_xywh": [
+        23,
+        34,
+        341,
+        300
+      ],
+      "area_px": 81306,
+      "percent_of_image": 35.381,
+      "location": "top"
+    },
+    {
+      "id": 2,
+      "bbox_xywh": [
+        0,
+        0,
+        383,
+        600
+      ],
+      "area_px": 80195,
+      "percent_of_image": 34.898,
+      "location": "center"
+    },
+    {
+      "id": 3,
+      "bbox_xywh": [
+        153,
+        11,
+        70,
+        23
+      ],
+      "area_px": 1385,
+      "percent_of_image": 0.603,
+      "location": "top"
+    }
+  ]
+}
