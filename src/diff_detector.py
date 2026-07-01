@@ -61,7 +61,7 @@ def _location_label(cx: int, cy: int, width: int, height: int) -> str:
 
 def detect_differences(img_a: np.ndarray, img_b: np.ndarray,
                         min_region_area: int = 150,
-                        blur_kernel: int = 5,
+                        blur_kernel: int = 3,
                         threshold_method: str = "otsu",
                         fixed_threshold: int = 30,
                         morph_kernel_size: int = 5) -> DiffResult:
@@ -71,23 +71,26 @@ def detect_differences(img_a: np.ndarray, img_b: np.ndarray,
     Args:
         min_region_area: contours smaller than this (in px) are treated as
             noise and discarded (raise this for noisy/high-res scans).
-        blur_kernel: Gaussian blur kernel size applied before thresholding
-            (higher = smoother, fewer tiny false positives).
+        blur_kernel: Gaussian blur kernel size applied before thresholding.
+            Keep this low for drawings because thin circles and text can fade
+            after heavy blur.
         threshold_method: "otsu" (automatic) or "fixed".
         fixed_threshold: threshold value used when threshold_method="fixed".
             Raise this (e.g. 60-100) for images with sub-pixel rendering
             noise (e.g. two different exports/scans of the same document).
-        morph_kernel_size: size of the morphological open/close kernel used
-            to remove speckle noise and merge nearby blobs. Raise this to
-            aggressively suppress thin-line rendering noise.
+        morph_kernel_size: size of the morphological close/dilate kernel used
+            to connect nearby changed pixels. Raise this for noisy scans, but
+            keep it low for thin annotations.
 
     Steps:
-      1. Convert to grayscale.
+      1. Convert to grayscale and LAB color.
       2. Compute SSIM (structural similarity) map -> catches structural /
          perceptual differences robustly, not just raw pixel deltas.
-      3. Threshold the SSIM difference map to get a binary change mask.
-      4. Morphological cleanup to remove noise / merge nearby blobs.
-      5. Contour detection -> individual changed regions with bounding boxes,
+      3. Combine SSIM, grayscale pixel difference, and color difference.
+      4. Threshold the combined map to get a binary change mask.
+      5. Morphological cleanup to remove noise / merge nearby blobs without
+         erasing thin annotation strokes.
+      6. Contour detection -> individual changed regions with bounding boxes,
          filtered by `min_region_area` to ignore insignificant noise.
     """
     height, width = img_a.shape[:2]
@@ -97,11 +100,18 @@ def detect_differences(img_a: np.ndarray, img_b: np.ndarray,
 
     score, diff = ssim(gray_a, gray_b, full=True)
     diff = (diff * 255).astype("uint8")
-    # Pixel-wise absolute difference as a secondary signal, combined with SSIM.
+    # Pixel-wise grayscale difference catches dark/light content changes.
     abs_diff = cv2.absdiff(gray_a, gray_b)
 
+    # Color difference catches red/colored annotations that may be weak after
+    # grayscale conversion, such as circles, arrows, and markup text.
+    lab_a = cv2.cvtColor(img_a, cv2.COLOR_BGR2LAB).astype(np.float32)
+    lab_b = cv2.cvtColor(img_b, cv2.COLOR_BGR2LAB).astype(np.float32)
+    color_delta = np.linalg.norm(lab_a - lab_b, axis=2)
+    color_delta = np.clip(color_delta * 1.35, 0, 255).astype("uint8")
+
     inv_ssim_diff = 255 - diff
-    combined = cv2.max(inv_ssim_diff, abs_diff)
+    combined = cv2.max(cv2.max(inv_ssim_diff, abs_diff), color_delta)
 
     if blur_kernel > 1:
         combined = cv2.GaussianBlur(combined, (blur_kernel, blur_kernel), 0)
@@ -111,10 +121,15 @@ def detect_differences(img_a: np.ndarray, img_b: np.ndarray,
     else:
         _, mask = cv2.threshold(combined, fixed_threshold, 255, cv2.THRESH_BINARY)
 
-    # Morphological cleanup: remove speckle noise, close small gaps.
-    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (morph_kernel_size, morph_kernel_size))
-    mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel, iterations=1)
-    mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel, iterations=2)
+    # Morphological cleanup: close small gaps and slightly thicken thin marks.
+    # Use a tiny opening kernel only for isolated speckles; a large opening
+    # erases circular/text annotations in drawings.
+    small_kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
+    close_size = max(3, morph_kernel_size | 1)
+    close_kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (close_size, close_size))
+    mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, close_kernel, iterations=1)
+    mask = cv2.dilate(mask, small_kernel, iterations=1)
+    mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, small_kernel, iterations=1)
 
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 

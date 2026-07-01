@@ -2,7 +2,8 @@ opencv-python-headless>=4.9,<5
 numpy>=1.26,<3
 Pillow>=10.0,<13
 scikit-image>=0.22,<1
-streamlit>=1.30,<2
+Flask>=3.0,<4
+reportlab>=4.0,<5
 
-# Optional — only needed if using the --llm_summary flag / "Use Claude API" toggle
+# Optional - only needed if using the --llm_summary flag from the CLI
 anthropic>=0.34

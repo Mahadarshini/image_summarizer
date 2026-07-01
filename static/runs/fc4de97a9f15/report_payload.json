@@ -1,0 +1,36 @@
+{
+  "stats": {
+    "num_changed_regions": 2,
+    "percent_changed": 49.82,
+    "total_changed_area_px": 114495,
+    "total_image_area_px": 229800,
+    "ssim_similarity_score": 0.5365,
+    "regions": [
+      {
+        "id": 1,
+        "bbox_xywh": [
+          0,
+          0,
+          383,
+          600
+        ],
+        "area_px": 206344,
+        "percent_of_image": 89.793,
+        "location": "center"
+      },
+      {
+        "id": 2,
+        "bbox_xywh": [
+          154,
+          12,
+          69,
+          22
+        ],
+        "area_px": 1360,
+        "percent_of_image": 0.592,
+        "location": "top"
+      }
+    ]
+  },
+  "summary": "The comparison identified 2 changed regions between the two images, affecting approximately 49.82% of the total image area. The most significant change is located in the center region (region #1), covering about 89.793% of the image. Additional changes were detected across the center and top areas of the frame. Overall, the modifications are classified as extensive in extent (structural similarity score: 0.5365). Confidence in these detections is low."
+}
